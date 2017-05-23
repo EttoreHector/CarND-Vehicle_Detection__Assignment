@@ -243,3 +243,63 @@ def draw_labeled_bboxes(img, labels):
     # Return the image
     return img
 
+
+def overimpose_heat_maps(h1, h2):
+    for i in range(len(h1)):
+        for j in range(len(h1[0])):
+            h1[i][j] += h2[i][j]
+            
+    return h1
+
+def subtract_heat_maps(h1, boxes):
+    for box in boxes:
+        for i in range(box[0][1], box[1][1] + 1):
+            for j in range(box[0][0], box[1][0] + 1):
+                h1[i,j] = max(0, h1[i,j] - 1)
+            
+    return h1
+
+
+def transform_image(img,ang_range,shear_range,trans_range):
+    '''
+    This function transforms images to generate new images.
+    The function takes in following arguments,
+    1- Image
+    2- ang_range: Range of angles for rotation
+    3- shear_range: Range of values to apply affine transform to
+    4- trans_range: Range of values to apply translations over. 
+    
+    A Random uniform distribution is used to generate different parameters for transformation
+    
+    '''
+    # Rotation
+    ang_rot = np.random.uniform(ang_range)-ang_range/2
+    rows,cols,ch = img.shape    
+    Rot_M = cv2.getRotationMatrix2D((cols/2,rows/2),ang_rot,1)
+
+    # Translation
+    tr_x = trans_range*np.random.uniform()-trans_range/2
+    tr_y = trans_range*np.random.uniform()-trans_range/2
+    Trans_M = np.float32([[1,0,tr_x],[0,1,tr_y]])
+
+    # Shear
+    pts1 = np.float32([[5,5],[20,5],[5,20]])
+
+    pt1 = 5+shear_range*np.random.uniform()-shear_range/2
+    pt2 = 20+shear_range*np.random.uniform()-shear_range/2
+    
+    # Brightness 
+    pts2 = np.float32([[pt1,5],[pt2,pt1],[5,pt2]])
+
+    shear_M = cv2.getAffineTransform(pts1,pts2)
+        
+    img = cv2.warpAffine(img,Rot_M,(cols,rows))
+    img = cv2.warpAffine(img,Trans_M,(cols,rows))
+    img = cv2.warpAffine(img,shear_M,(cols,rows))
+    
+    if len(img.shape) < 3: # the channel dimention is also present
+        img = np.expand_dims(img, axis= 2) # Create the 'z' axis
+    
+    return img
+
+        

@@ -30,9 +30,9 @@ for image in images_notcars:
 
     
 # Set parameters for feature extraction
-spatial = (32,32)
+spatial = (32,32) #(32,32)
 histbin = 32
-cspace = 'HLS'
+cspace = 'HLS'#'LUV'#''HLS'
 cspaceHog = 'YCrCb'
 pix_per_cell = 8
 orient = 9
